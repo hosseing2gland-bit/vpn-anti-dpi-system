@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: vpn-postgres
+    environment:
+      POSTGRES_USER: vpnuser
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: vpndb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - vpn-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: vpn-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - vpn-network
+    restart: unless-stopped
+
+  vpn-server:
+    build:
+      context: ./vpn-server
+      dockerfile: Dockerfile
+    container_name: vpn-server
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: vpnuser
+      DB_PASSWORD: yourpassword
+      DB_NAME: vpndb
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      VPN_PORT_TLS: 8443
+      VPN_PORT_WS: 8444
+      NODE_ENV: production
+    ports:
+      - "8443:8443"
+      - "8444:8444"
+      - "8445:8445"
+    volumes:
+      - ./vpn-server:/app
+      - /app/node_modules
+    networks:
+      - vpn-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  vpn-network:
+    driver: bridge

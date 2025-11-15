@@ -1,0 +1,27 @@
+{
+  "name": "vpn-anti-dpi-server",
+  "version": "1.0.0",
+  "description": "VPN Server with Anti-DPI Evasion",
+  "main": "server-phase7.js",
+  "scripts": {
+    "start": "node server-phase7.js",
+    "dev": "nodemon server-phase7.js",
+    "setup": "node setup-database.js",
+    "test": "node client-phase7-ws.js"
+  },
+  "keywords": ["vpn", "anti-dpi", "tls", "websocket"],
+  "author": "Hossein Ghalandari",
+  "license": "MIT",
+  "dependencies": {
+    "pg": "^8.11.3",
+    "redis": "^4.6.11",
+    "ws": "^8.15.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
