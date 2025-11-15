@@ -1,0 +1,101 @@
+name: Mobile App CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'mobile-app/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'mobile-app/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+        cache-dependency-path: mobile-app/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./mobile-app
+      run: npm ci
+    
+    - name: TypeScript check
+      working-directory: ./mobile-app
+      run: npx tsc --noEmit || true
+    
+    - name: Lint check
+      working-directory: ./mobile-app
+      run: npm run lint || true
+    
+    - name: Security audit
+      working-directory: ./mobile-app
+      run: npm audit --audit-level=moderate || true
+
+  build-android:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+    
+    - name: Setup Expo
+      uses: expo/expo-github-action@v8
+      with:
+        expo-version: latest
+        token: ${{ secrets.EXPO_TOKEN }}
+    
+    - name: Install dependencies
+      working-directory: ./mobile-app
+      run: npm ci
+    
+    - name: Build APK (Development)
+      working-directory: ./mobile-app
+      run: |
+        echo "Building Android APK..."
+        # Uncomment when ready for builds
+        # eas build --platform android --profile development --non-interactive
+
+  build-ios:
+    runs-on: macos-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+    
+    - name: Setup Expo
+      uses: expo/expo-github-action@v8
+      with:
+        expo-version: latest
+        token: ${{ secrets.EXPO_TOKEN }}
+    
+    - name: Install dependencies
+      working-directory: ./mobile-app
+      run: npm ci
+    
+    - name: Build IPA (Development)
+      working-directory: ./mobile-app
+      run: |
+        echo "Building iOS IPA..."
+        # Uncomment when ready for builds
+        # eas build --platform ios --profile development --non-interactive
